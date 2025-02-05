@@ -15,7 +15,7 @@ const START_SERVER = () => {
   router(app);
   if (process.env.BUILD_MODE === "production") {
     app.listen(PORT, () => {
-      console.log(`${PORT}`);
+      console.log(`port:${PORT}`);
     });
   } else {
     app.listen(process.env.LOCAL_DEV_PORT, () => {
