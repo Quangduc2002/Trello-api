@@ -2,7 +2,7 @@ import express from "express";
 import { CONNECT_DB, GET_DB } from "./config/mongodb.js";
 import "dotenv/config";
 import { router } from "./routes/index.js";
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT;
 import { corsOptions } from "./config/cors.js";
 import cors from "cors";
 
@@ -13,10 +13,15 @@ const START_SERVER = () => {
   app.use(cors(corsOptions));
   app.use(express.json());
   router(app);
-
-  app.listen(PORT, () => {
-    console.log(`http://localhost:${PORT}`);
-  });
+  if (process.env.BUILD_MODE === "production") {
+    app.listen(PORT, () => {
+      console.log(`${PORT}`);
+    });
+  } else {
+    app.listen(process.env.LOCAL_DEV_PORT, () => {
+      console.log(`http://localhost:${process.env.LOCAL_DEV_PORT}`);
+    });
+  }
 };
 
 CONNECT_DB()
