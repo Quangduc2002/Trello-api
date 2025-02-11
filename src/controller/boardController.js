@@ -1,9 +1,11 @@
+import { ObjectId } from "mongodb";
 import { GET_DB } from "../config/mongodb.js";
 import { slugify } from "../utils/formatters.js";
 import { boardModel } from "../models/boardModel.js";
 import { columnModel } from "../models/columnModel.js";
 import { cardModel } from "../models/cardModel.js";
-import { ObjectId } from "mongodb";
+import { userModel } from "../models/userModel.js";
+import { invitationModel } from "../models/invitationModel.js";
 import { convertIdToObjectId } from "../utils/convertObjectId.js";
 import { verifyToken, extractToken } from "../middleware/JWTAction.js";
 
@@ -20,7 +22,7 @@ const getBoard = async (req, res, next) => {
 
     const result = await GET_DB()
       .collection(boardModel.BOARD_COLLECTION_NAME)
-      .find({ userId: new ObjectId(verifytoken?._id), _destroy: false })
+      .find({ memberIds: new ObjectId(verifytoken?._id), _destroy: false })
       .toArray();
 
     res.status(200).json(result);
@@ -39,7 +41,7 @@ const createBoard = async (req, res, next) => {
     const validateData = await validateCreate(data);
     const newBoard = {
       ...validateData,
-      userId: new ObjectId(validateData.userId),
+      memberIds: new ObjectId(validateData.memberIds),
     };
 
     const createBoard = await GET_DB()
@@ -73,7 +75,7 @@ const getBoardDetail = async (req, res, next) => {
           $match: {
             slug: req?.params?.slug,
             _destroy: false,
-            userId: new ObjectId(verifytoken?._id),
+            memberIds: new ObjectId(verifytoken?._id),
           },
         },
         {
@@ -82,6 +84,14 @@ const getBoardDetail = async (req, res, next) => {
             localField: "_id",
             foreignField: "boardId",
             as: "columns",
+          },
+        },
+        {
+          $lookup: {
+            from: userModel.USER_COLLECTION_NAME,
+            localField: "memberIds",
+            foreignField: "_id",
+            as: "members",
           },
         },
         {
@@ -103,6 +113,10 @@ const getBoardDetail = async (req, res, next) => {
             _id: "$_id",
             slug: { $first: "$slug" },
             _destroy: { $first: "$_destroy" },
+            memberIds: { $first: "$memberIds" },
+            title: { $first: "$title" },
+            type: { $first: "$type" },
+            members: { $first: "$members" },
             columnOrderIds: { $first: "$columnOrderIds" },
             columns: { $push: "$columns" }, // Gom các columns lại thành mảng
           },
@@ -177,10 +191,45 @@ const trashBoard = async (req, res, next) => {
   }
 };
 
+const serviceAccept = async (req, res, next) => {
+  try {
+    const data = {
+      invitationId: req.body._id,
+      boardId: req.body.boardId,
+      memberId: req.body.memberId,
+    };
+    const [accept, result] = await Promise.all([
+      GET_DB()
+        .collection(invitationModel.INVITATION_COLLECTION_NAME)
+        .findOneAndUpdate(
+          {
+            _id: new ObjectId(data?.invitationId),
+          },
+          {
+            $set: { status: true },
+          },
+          { returnDocument: "after" }
+        ),
+      GET_DB()
+        .collection(boardModel.BOARD_COLLECTION_NAME)
+        .findOneAndUpdate(
+          { _id: new ObjectId(data?.boardId) },
+          { $addToSet: { memberIds: new ObjectId(data?.memberId) } },
+          { returnDocument: "after" }
+        ),
+    ]);
+
+    return res.status(200).json({ accept, result });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 export const boardController = {
   createBoard,
   getBoard,
   getBoardDetail,
   updateBoard,
   trashBoard,
+  serviceAccept,
 };

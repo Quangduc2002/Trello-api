@@ -1,6 +1,7 @@
-import "dotenv/config";
 import jwt from "jsonwebtoken";
+import "dotenv/config";
 const nonSecurePaths = ["/login", "/register"];
+
 export const generateAccessToken = (payload) => {
   let key = process.env.ACCESS_TOKEN_SECRET;
   let accessToken = null;
@@ -60,7 +61,7 @@ export const extractToken = (req) => {
   return null;
 };
 
-export const checkUserJWT = (req, res, next) => {
+export const authMiddleware = (req, res, next) => {
   if (nonSecurePaths.includes(req.path)) return next();
 
   let cookies = extractToken(req);

@@ -8,11 +8,11 @@ const validateCreate = async (data) => {
   });
 };
 
-const chekUserEmail = async (userEmail) => {
+const checkUserEmail = async (userEmail) => {
   try {
     const email = await GET_DB()
       .collection(userModel.USER_COLLECTION_NAME)
-      .findOne({ email: userEmail });
+      .findOne({ email: userEmail?.trim() });
 
     if (email) {
       return true; // return
@@ -32,7 +32,7 @@ const createUser = async (req, res, next) => {
 
     const validateData = await validateCreate(newUser);
 
-    const isExist = await chekUserEmail(validateData?.email);
+    const isExist = await checkUserEmail(validateData?.email);
     if (isExist) {
       return res.status(500).json({
         message: "Email đã tồn tại",

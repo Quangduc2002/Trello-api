@@ -80,11 +80,8 @@ const deleteCard = async (req, res, next) => {
 const updateCard = async (req, res, next) => {
   try {
     const editCard = {
-      id: req.params.id,
       ...req.body,
     };
-
-    console.log(editCard);
 
     const updateCard = await GET_DB()
       .collection(cardModel.CARD_COLLECTION_NAME)

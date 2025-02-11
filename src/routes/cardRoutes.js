@@ -2,10 +2,10 @@ import express from "express";
 const cardRouter = express.Router();
 
 import { cardController } from "../controller/cardController.js";
-import { checkUserJWT } from "../middleware/JWTAction.js";
+import { authMiddleware } from "../middleware/JWTAction.js";
 
-cardRouter.put("/:id/edit", checkUserJWT, cardController.updateCard);
-cardRouter.delete("/:id/delete", checkUserJWT, cardController.deleteCard);
-cardRouter.post("/", checkUserJWT, cardController.createCard);
+cardRouter.put("/:id/edit", authMiddleware, cardController.updateCard);
+cardRouter.delete("/:id/delete", authMiddleware, cardController.deleteCard);
+cardRouter.post("/", authMiddleware, cardController.createCard);
 
 export default cardRouter;
