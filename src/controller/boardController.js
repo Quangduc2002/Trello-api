@@ -41,7 +41,8 @@ const createBoard = async (req, res, next) => {
     const validateData = await validateCreate(data);
     const newBoard = {
       ...validateData,
-      memberIds: new ObjectId(validateData.memberIds),
+      memberIds: [new ObjectId(validateData.creator)],
+      creator: new ObjectId(validateData.creator),
     };
 
     const createBoard = await GET_DB()
@@ -113,6 +114,7 @@ const getBoardDetail = async (req, res, next) => {
             _id: "$_id",
             slug: { $first: "$slug" },
             _destroy: { $first: "$_destroy" },
+            creator: { $first: "$creator" },
             memberIds: { $first: "$memberIds" },
             title: { $first: "$title" },
             type: { $first: "$type" },
@@ -198,8 +200,17 @@ const serviceAccept = async (req, res, next) => {
       boardId: req.body.boardId,
       memberId: req.body.memberId,
     };
-    const [accept, result] = await Promise.all([
-      GET_DB()
+
+    const addMemberBoard = await GET_DB()
+      .collection(boardModel.BOARD_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: new ObjectId(data?.boardId), _destroy: false },
+        { $addToSet: { memberIds: new ObjectId(data?.memberId) } },
+        { returnDocument: "after" }
+      );
+
+    if (addMemberBoard) {
+      const result = await GET_DB()
         .collection(invitationModel.INVITATION_COLLECTION_NAME)
         .findOneAndUpdate(
           {
@@ -209,17 +220,14 @@ const serviceAccept = async (req, res, next) => {
             $set: { status: true },
           },
           { returnDocument: "after" }
-        ),
-      GET_DB()
-        .collection(boardModel.BOARD_COLLECTION_NAME)
-        .findOneAndUpdate(
-          { _id: new ObjectId(data?.boardId) },
-          { $addToSet: { memberIds: new ObjectId(data?.memberId) } },
-          { returnDocument: "after" }
-        ),
-    ]);
+        );
 
-    return res.status(200).json({ accept, result });
+      return res.status(200).json(result);
+    } else {
+      return res.status(500).json({
+        message: "Không gian làm việc này đã bị xóa.",
+      });
+    }
   } catch (error) {
     console.log(error);
   }

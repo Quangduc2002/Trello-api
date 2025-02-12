@@ -8,13 +8,13 @@ import {
 
 const USER_COLLECTION_NAME = "users";
 const USER_COLLECTION_SCHEMA = Joi.object({
-  name: Joi.string().required().min(5).max(50).trim().strict(),
+  name: Joi.string().required().min(1).max(50).trim().strict(),
   email: Joi.string().required().pattern(REG_EMAIL).message(REG_EMAIL_MESSAGE),
   password: Joi.string()
     .required()
     .pattern(REG_PASSWORD)
     .message(REG_PASSWORD_MESSAGE),
-
+  avatar: Joi.string().uri().optional(),
   createdAt: Joi.date().timestamp("javascript").default(Date.now),
   updatedAt: Joi.date().timestamp("javascript").default(null),
 });

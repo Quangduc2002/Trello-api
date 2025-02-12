@@ -43,6 +43,7 @@ const login = async (req, res, next) => {
           _id: user._id,
           email: user.email,
           name: user.name,
+          avatar: user.avatar,
         };
 
         const accessToken = generateAccessToken(payload);
@@ -81,6 +82,7 @@ const refreshToken = async (req, res, next) => {
         _id: verifyToken._id,
         email: verifyToken.email,
         name: verifyToken.name,
+        avatar: verifyToken.avatar,
       };
       const accessToken = generateAccessToken(payload);
       const refreshToken = generateRefreshToken(payload);
