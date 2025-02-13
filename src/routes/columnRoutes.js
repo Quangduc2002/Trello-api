@@ -9,7 +9,11 @@ columnRouter.delete(
   authMiddleware,
   columnController.deleteColumn
 );
-columnRouter.put("/move-card-column", columnController.updateCardColumn);
+columnRouter.put(
+  "/move-card-column",
+  authMiddleware,
+  columnController.updateCardColumn
+);
 columnRouter.post("/", authMiddleware, columnController.createColumn);
 columnRouter.put("/:id", authMiddleware, columnController.updateColumn);
 

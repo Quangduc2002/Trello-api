@@ -111,8 +111,44 @@ const updateUser = async (req, res, next) => {
   }
 };
 
+const changePassword = async (req, res, next) => {
+  try {
+    const data = {
+      ...req.body,
+    };
+
+    const user = await GET_DB()
+      .collection(userModel.USER_COLLECTION_NAME)
+      .findOne({ _id: new ObjectId(req.params.id) });
+
+    if (user) {
+      if (user.password.trim() === data?.passwordCurent?.trim()) {
+        const changePassword = await GET_DB()
+          .collection(userModel.USER_COLLECTION_NAME)
+          .findOneAndUpdate(
+            { _id: new ObjectId(req.params.id) },
+            { $set: { password: data?.passwordNew.trim() } },
+            { returnDocument: "after" }
+          );
+        return res.status(200).json(changePassword);
+      } else {
+        return res.status(500).json({
+          message: "Mật khẩu hiện tại không chính xác.",
+        });
+      }
+    } else {
+      return res.status(500).json({
+        message: "Không tồn tại người dùng.",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 export const userController = {
   createUser,
   getProfile,
   updateUser,
+  changePassword,
 };
