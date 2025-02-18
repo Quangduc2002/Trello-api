@@ -34,7 +34,7 @@ const checkInvitation = async (boardId, memberId) => {
   try {
     const invitation = await GET_DB()
       .collection(invitationModel.INVITATION_COLLECTION_NAME)
-      .findOne({ boardId, memberId });
+      .findOne({ boardId, memberId, status: false });
 
     if (invitation) {
       return true;

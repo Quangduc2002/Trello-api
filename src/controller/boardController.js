@@ -33,9 +33,12 @@ const getBoard = async (req, res, next) => {
 
 const createBoard = async (req, res, next) => {
   try {
+    const token = extractToken(req);
+    const verifytoken = verifyToken(token);
     const data = {
       ...req.body,
       slug: slugify(req.body.title || ""),
+      creator: verifytoken?._id,
     };
 
     const validateData = await validateCreate(data);
@@ -233,6 +236,27 @@ const serviceAccept = async (req, res, next) => {
   }
 };
 
+const serviceRemoveMember = async (req, res, next) => {
+  try {
+    const data = {
+      boardId: req.body.boardId,
+      memberId: req.body.memberId,
+    };
+
+    const removeMemberBoard = await GET_DB()
+      .collection(boardModel.BOARD_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: new ObjectId(data?.boardId), _destroy: false },
+        { $pull: { memberIds: new ObjectId(data?.memberId) } },
+        { returnDocument: "after" }
+      );
+
+    return res.status(200).json(removeMemberBoard);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 export const boardController = {
   createBoard,
   getBoard,
@@ -240,4 +264,5 @@ export const boardController = {
   updateBoard,
   trashBoard,
   serviceAccept,
+  serviceRemoveMember,
 };
