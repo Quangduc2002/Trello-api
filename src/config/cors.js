@@ -1,5 +1,5 @@
 import { StatusCodes } from "http-status-codes";
-import { WHITELIST_DOMAINS } from "../utils/constants.js";
+import { LIST_DOMAINS } from "../utils/constants.js";
 import "dotenv/config";
 
 export const corsOptions = {
@@ -11,7 +11,7 @@ export const corsOptions = {
     }
 
     // Kiểm tra xem origin có phải là domain được chấp nhận hay không
-    if (WHITELIST_DOMAINS.includes(origin)) {
+    if (LIST_DOMAINS.includes(origin)) {
       return callback(null, true);
     }
 
