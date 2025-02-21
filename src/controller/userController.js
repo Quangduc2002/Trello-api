@@ -117,6 +117,12 @@ const changePassword = async (req, res, next) => {
       ...req.body,
     };
 
+    if (data?.passwordNew.trim() === data?.passwordCurent?.trim()) {
+      return res.status(500).json({
+        message: "Mật khẩu mới trùng với mật khẩu hiện tại.",
+      });
+    }
+
     const user = await GET_DB()
       .collection(userModel.USER_COLLECTION_NAME)
       .findOne({ _id: new ObjectId(req.params.id) });
